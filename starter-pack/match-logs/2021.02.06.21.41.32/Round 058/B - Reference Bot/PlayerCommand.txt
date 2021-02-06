@@ -1,3 +1,0 @@
-Command: dig 21 14
-Execution time: 11ms
-Exception: null

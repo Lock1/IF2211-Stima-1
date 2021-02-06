@@ -1,3 +1,0 @@
-Command: select 2;shoot N
-Execution time: 11ms
-Exception: null
