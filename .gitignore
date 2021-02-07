@@ -1,5 +1,6 @@
 /Matches/*
 /entelect-visualiser_Data/*
+/MonoBleedingEdge/*
 entelect-visualiser.exe
 start-visualiser.bat
 UnityCrashHandler32.exe
