@@ -1,1 +1,6 @@
-starter-pack/match-logs/*
+/Matches/*
+/entelect-visualiser_Data/*
+entelect-visualiser.exe
+start-visualiser.bat
+UnityCrashHandler32.exe
+UnityPlayer.dll
