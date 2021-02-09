@@ -1,7 +1,7 @@
 {
-	"author": "James James",
-	"email": "James.James@example.com",
-	"nickName": "James",
+	"author": "Fabian Savero Diaz P. (13519140), Fadel Ananda Dotty (13519146), Tanur Rizaldi R. (13519146)",
+	"email": "13519140@std.stei.itb.ac.id, 13519146@std.stei.itb.ac.id, 13519214@std.stei.itb.ac.id",
+	"nickName": "Gemdev abal-abal",
 	"botLocation": "/target",
 	"botFileName": "java-sample-bot-jar-with-dependencies.jar",
 	"botLanguage": "java"
