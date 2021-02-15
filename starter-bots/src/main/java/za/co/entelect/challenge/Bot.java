@@ -151,6 +151,18 @@ public class Bot {
                 && y >= 0 && y < gameState.mapSize;
     }
 
+    private boolean canDoBanana(Worm currentWorm, Cell cell){
+        return currentWom.worm_id == 2 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
+    }
+
+    private boolean canDoSnowball(Worm currentWorm, Cell cell){
+        return currentWom.worm_id == 3 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
+    }
+
+    // private boolean canShoot(List<List<Cell>> range){
+    //     for 
+    // }
+
     private Direction resolveDirection(Position a, Position b) {
         StringBuilder builder = new StringBuilder();
 
