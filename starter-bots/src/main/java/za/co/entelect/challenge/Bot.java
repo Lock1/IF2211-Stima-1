@@ -152,11 +152,11 @@ public class Bot {
     }
 
     private boolean canDoBanana(Worm currentWorm, Cell cell){
-        return currentWom.worm_id == 2 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
+        return currentWorm.worm_id == 2 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
     }
 
     private boolean canDoSnowball(Worm currentWorm, Cell cell){
-        return currentWom.worm_id == 3 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
+        return currentWorm.worm_id == 3 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
     }
 
     // private boolean canShoot(List<List<Cell>> range){
