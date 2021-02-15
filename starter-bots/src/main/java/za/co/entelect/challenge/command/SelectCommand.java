@@ -5,7 +5,7 @@ public class SelectCommand implements Command {
     private int id;
     private Command command;
 
-    public DigCommand(int id, Command command) {
+    public SelectCommand(int id, Command command) {
         this.id = id;
         this.command = command;
     }
