@@ -5,23 +5,23 @@ import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.CellType;
 import za.co.entelect.challenge.enums.Direction;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Bot {
 
-    private Random random;
     private GameState gameState;
     private Opponent opponent;
     private MyWorm currentWorm;
 
-    public Bot(Random random, GameState gameState) {
-        this.random = random;
+    public Bot(GameState gameState) {
         this.gameState = gameState;
         this.opponent = gameState.opponents[0];
         this.currentWorm = getCurrentWorm(gameState);
     }
 
+    // Ambil worm sekarang
     private MyWorm getCurrentWorm(GameState gameState) {
         return Arrays.stream(gameState.myPlayer.worms)
                 .filter(myWorm -> myWorm.id == gameState.currentWormId)
@@ -32,19 +32,28 @@ public class Bot {
     public Command run() {
 
         Worm enemyWorm = getFirstWormInRange();
+
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
             return new ShootCommand(direction);
         }
 
+        Direction moveDirection = nearestEnemyDirection(currentWorm.position);
         List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        int cellIdx = random.nextInt(surroundingBlocks.size());
 
-        Cell block = surroundingBlocks.get(cellIdx);
-        if (block.type == CellType.AIR) {
-            return new MoveCommand(block.x, block.y);
-        } else if (block.type == CellType.DIRT) {
-            return new DigCommand(block.x, block.y);
+        int xDirection = currentWorm.position.x + moveDirection.x;
+        int yDirection = currentWorm.position.y + moveDirection.y;
+
+        for (int i = 0; i < surroundingBlocks.size(); i++) {
+            Cell block = surroundingBlocks.get(i);
+
+            if (block.x == xDirection && block.y == yDirection) {
+                if (block.type == CellType.AIR) {
+                    return new MoveCommand(xDirection, yDirection);
+                } else if (block.type == CellType.DIRT) {
+                    return new DigCommand(xDirection, yDirection);
+                }
+            }
         }
 
         return new DoNothingCommand();
@@ -66,6 +75,27 @@ public class Bot {
         }
 
         return null;
+    }
+
+    private Direction nearestEnemyDirection(Position currentWorm) {
+        ArrayList<Position> enemyPosition = new ArrayList<>();
+
+        for (int i = 0; i < gameState.opponents[0].worms.length; i++) {
+            enemyPosition.add(gameState.opponents[0].worms[i].position);
+        }
+
+        int minimalDistance = euclideanDistance(currentWorm.x, currentWorm.y, enemyPosition.get(0).x, enemyPosition.get(0).y);
+        int minimalIndex = 0;
+
+        for (int i = 1; i < enemyPosition.size(); i++) {
+            int temp = euclideanDistance(currentWorm.x, currentWorm.y, enemyPosition.get(i).x, enemyPosition.get(i).y);
+
+            if (temp < minimalDistance) {
+                minimalIndex = i;
+            }
+        }
+
+        return resolveDirection(currentWorm, enemyPosition.get(minimalIndex));
     }
 
     private List<List<Cell>> constructFireDirectionLines(int range) {
