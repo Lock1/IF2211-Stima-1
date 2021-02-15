@@ -12,6 +12,6 @@ public class BananaCommand implements Command {
 
     @Override
     public String render() {
-        return String.format("Banana %d %d", x, y);
+        return String.format("banana %d %d", x, y);
     }
 }
