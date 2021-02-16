@@ -78,9 +78,10 @@ public class Bot {
     private Command moveOrDigToCell(int x, int y, Position currentPosition) {
         List<Cell> surroundingBlocks = getSurroundingCells(currentPosition.x, currentPosition.y);
 
+        // System.out.printf("Area %d\n",surroundingBlocks.size());
         for (int i = 0; i < surroundingBlocks.size(); i++) {
             Cell block = surroundingBlocks.get(i);
-
+            // System.out.printf("Index %d block %s\n",i,block.type);
             if (block.x == x && block.y == y) {
                 if (block.type == CellType.DIRT) {
                     return new DigCommand(x,y);
@@ -89,6 +90,9 @@ public class Bot {
                 }
             }
         }
+        
+        // System.out.printf("From %d %d",currentPosition.x ,currentPosition.y);
+        // System.out.printf("To %d %d",x ,y);
 
         return new DoNothingCommand();
     }
@@ -132,6 +136,7 @@ public class Bot {
         }
 
         return resolveDirection(currentWorm, enemyPosition.get(minimalIndex));
+        // return resolveDirection(currentWorm, opponent.worms[0].position);
     }
 
     private Command throwSkill(MyWorm currentWorm) {
@@ -155,10 +160,10 @@ public class Bot {
         }
 
         if (euclideanDistance(currentWorm.position.x, currentWorm.position.y, enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y) <= 5){
-            if (currentWorm.id == 2 && currentWorm.snowball != null && currentWorm.snowball.count > 0)
-                return new BananaCommand(enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y);
-            else if (currentWorm.id == 3 && currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0)
+            if (currentWorm.snowball != null && currentWorm.snowball.count > 0)
                 return new SnowBallCommand(enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y);
+            else if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0)
+                return new BananaCommand(enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y);
         }
         return null;
     }
@@ -198,7 +203,7 @@ public class Bot {
         for (int i = x - 1; i <= x + 1; i++) {
             for (int j = y - 1; j <= y + 1; j++) {
                 // Don't include the current position
-                if (i != x && j != y && isValidCoordinate(i, j)) {
+                if ((i != x && j != y) || isValidCoordinate(i, j)) {
                     cells.add(gameState.map[j][i]);
                 }
             }
