@@ -134,7 +134,7 @@ public class Bot {
         return resolveDirection(currentWorm, enemyPosition.get(minimalIndex));
     }
 
-    private Command throwSkill(Worm currentWorm) {
+    private Command throwSkill(MyWorm currentWorm) {
         ArrayList<Position> enemyPosition = new ArrayList<>();
 
         // Iterasi melalui array worm musuh
@@ -155,9 +155,9 @@ public class Bot {
         }
 
         if (euclideanDistance(currentWorm.position.x, currentWorm.position.y, enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y) <= 5){
-            if (currentWorm.id == 2)
+            if (currentWorm.id == 2 && currentWorm.snowball != null && currentWorm.snowball.count > 0)
                 return new BananaCommand(enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y);
-            else if (currentWorm.id == 3)
+            else if (currentWorm.id == 3 && currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0)
                 return new SnowBallCommand(enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y);
         }
         return null;
