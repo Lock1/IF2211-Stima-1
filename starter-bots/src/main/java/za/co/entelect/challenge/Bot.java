@@ -38,6 +38,16 @@ public class Bot {
         //     return new SnowBallCommand(currentWorm.position.x+1,currentWorm.position.y);
 
         Worm enemyWorm = getFirstWormInRange();
+        Worm enemyWormB = getSpecialRange();
+
+        //Jika ada enemy worm di range special (banana/snowball), panggil special skill
+        if (enemyWormB != null){
+            if (canDoBanana(currentWorm)){
+                return new BananaCommand(enemyWormB.position.x, enemyWormB.position.y);
+            } else if (canDoSnowball(currentWorm)){
+                return new SnowBallCommand(enemyWormB.position.x, enemyWormB.position.y);
+            }
+        }
 
         // Jika ada sebuah enemy worm, panggil shoot command
         if (enemyWorm != null) {
@@ -94,6 +104,24 @@ public class Bot {
     private Worm getFirstWormInRange() {
 
         Set<String> cells = constructFireDirectionLines(currentWorm.weapon.range)
+                .stream()
+                .flatMap(Collection::stream)
+                .map(cell -> String.format("%d_%d", cell.x, cell.y))
+                .collect(Collectors.toSet());
+
+        for (Worm enemyWorm : opponent.worms) {
+            String enemyPosition = String.format("%d_%d", enemyWorm.position.x, enemyWorm.position.y);
+            if (cells.contains(enemyPosition) && enemyWorm.health>0) {
+                return enemyWorm;
+            }
+        }
+
+        return null;
+    }
+
+    private Worm getSpecialRange() {
+
+        Set<String> cells = constructFireDirectionLines(5)
                 .stream()
                 .flatMap(Collection::stream)
                 .map(cell -> String.format("%d_%d", cell.x, cell.y))
@@ -185,12 +213,12 @@ public class Bot {
                 && y >= 0 && y < gameState.mapSize;
     }
 
-    private boolean canDoBanana(Worm currentWorm, Cell cell){
-        return currentWorm.id == 2 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
+    private boolean canDoBanana(Worm currentWorm){
+        return currentWorm.id == 2;
     }
 
-    private boolean canDoSnowball(Worm currentWorm, Cell cell){
-        return currentWorm.id == 3 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
+    private boolean canDoSnowball(Worm currentWorm){
+        return currentWorm.id == 3;
     }
 
     // private boolean canShoot(List<List<Cell>> range){
