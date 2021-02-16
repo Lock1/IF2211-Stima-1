@@ -63,25 +63,26 @@ public class Bot {
         int yDestination = currentWorm.position.y + moveDirection.y;
 
         // Tentukan apakah dig atau gerak
-        moveOrDigToCell(Position(xDestination,yDestination), currentWorm.position);
+        return moveOrDigToCell(xDestination, yDestination, currentWorm.position);
 
-        return new DoNothingCommand();
     }
 
-    private void moveOrDigToCell(Position targetPosition, Position currentPosition) {
+    private Command moveOrDigToCell(int x, int y, Position currentPosition) {
         List<Cell> surroundingBlocks = getSurroundingCells(currentPosition.x, currentPosition.y);
 
         for (int i = 0; i < surroundingBlocks.size(); i++) {
             Cell block = surroundingBlocks.get(i);
 
-            if (block.x == targetPosition.x && block.y == targetPosition.y) {
+            if (block.x == x && block.y == y) {
                 if (block.type == CellType.AIR) {
-                    return new MoveCommand(targetPosition.x,targetPosition.y);
+                    return new MoveCommand(x,y);
                 } else if (block.type == CellType.DIRT) {
-                    return new DigCommand(targetPosition.x,targetPosition.y);
+                    return new DigCommand(x,y);
                 }
             }
         }
+
+        return new DoNothingCommand();
     }
 
     private Worm getFirstWormInRange() {
