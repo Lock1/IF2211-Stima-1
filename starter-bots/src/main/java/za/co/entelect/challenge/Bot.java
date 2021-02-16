@@ -31,6 +31,12 @@ public class Bot {
 
     public Command run() {
 
+        // DEBUG
+        // if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0)
+        //     return new BananaCommand(currentWorm.position.x+3,currentWorm.position.y);
+        // if (currentWorm.snowball != null && currentWorm.snowball.count > 0)
+        //     return new SnowBallCommand(currentWorm.position.x+1,currentWorm.position.y);
+
         Worm enemyWorm = getFirstWormInRange();
 
         // Jika ada sebuah enemy worm, panggil shoot command
@@ -180,15 +186,15 @@ public class Bot {
     }
 
     private boolean canDoBanana(Worm currentWorm, Cell cell){
-        return currentWorm.worm_id == 2 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
+        return currentWorm.id == 2 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
     }
 
     private boolean canDoSnowball(Worm currentWorm, Cell cell){
-        return currentWorm.worm_id == 3 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
+        return currentWorm.id == 3 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, cell.x, cell.y) <= 5) && cell.type!=CellType.DEEP_SPACE;
     }
 
     // private boolean canShoot(List<List<Cell>> range){
-    //     for 
+    //     for
     // }
 
     private Direction resolveDirection(Position a, Position b) {
