@@ -33,30 +33,55 @@ public class Bot {
 
         Worm enemyWorm = getFirstWormInRange();
 
+        // Jika ada sebuah enemy worm, panggil shoot command
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
             return new ShootCommand(direction);
         }
 
-        Direction moveDirection = nearestEnemyDirection(currentWorm.position);
-        List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
+        //Select worm secara paksa yang tidak sesuai dengan urutan id
+        if (gameState.myPlayer.remainingWormSelections > 0) {
+            for (int i = 0; i < gameState.myPlayer.worms.length; i++) {
+                Worm worm = gameState.myPlayer.worms[i];
 
-        int xDirection = currentWorm.position.x + moveDirection.x;
-        int yDirection = currentWorm.position.y + moveDirection.y;
+                if (worm != currentWorm && currentWorm.health > 0) {
+                    Worm shootableWorm = getFirstWormInRange();
 
-        for (int i = 0; i < surroundingBlocks.size(); i++) {
-            Cell block = surroundingBlocks.get(i);
-
-            if (block.x == xDirection && block.y == yDirection) {
-                if (block.type == CellType.AIR) {
-                    return new MoveCommand(xDirection, yDirection);
-                } else if (block.type == CellType.DIRT) {
-                    return new DigCommand(xDirection, yDirection);
+                    if (shootableWorm != null) {
+                        Direction direction = resolveDirection(worm.position, shootableWorm.position);
+                        return new SelectCommand(worm.id, new ShootCommand(direction));
+                    }
                 }
             }
         }
 
+        // Arah gerak
+        Direction moveDirection = nearestEnemyDirection(currentWorm.position);
+
+        // Tujuan
+        int xDestination = currentWorm.position.x + moveDirection.x;
+        int yDestination = currentWorm.position.y + moveDirection.y;
+
+        // Tentukan apakah dig atau gerak
+        moveOrDigToCell(Position(xDestination,yDestination), currentWorm.position);
+
         return new DoNothingCommand();
+    }
+
+    private void moveOrDigToCell(Position targetPosition, Position currentPosition) {
+        List<Cell> surroundingBlocks = getSurroundingCells(currentPosition.x, currentPosition.y);
+
+        for (int i = 0; i < surroundingBlocks.size(); i++) {
+            Cell block = surroundingBlocks.get(i);
+
+            if (block.x == targetPosition.x && block.y == targetPosition.y) {
+                if (block.type == CellType.AIR) {
+                    return new MoveCommand(targetPosition.x,targetPosition.y);
+                } else if (block.type == CellType.DIRT) {
+                    return new DigCommand(targetPosition.x,targetPosition.y);
+                }
+            }
+        }
     }
 
     private Worm getFirstWormInRange() {
@@ -69,7 +94,7 @@ public class Bot {
 
         for (Worm enemyWorm : opponent.worms) {
             String enemyPosition = String.format("%d_%d", enemyWorm.position.x, enemyWorm.position.y);
-            if (cells.contains(enemyPosition)) {
+            if (cells.contains(enemyPosition) && enemyWorm.health>0) {
                 return enemyWorm;
             }
         }
@@ -80,13 +105,15 @@ public class Bot {
     private Direction nearestEnemyDirection(Position currentWorm) {
         ArrayList<Position> enemyPosition = new ArrayList<>();
 
-        for (int i = 0; i < gameState.opponents[0].worms.length; i++) {
-            enemyPosition.add(gameState.opponents[0].worms[i].position);
+        // Iterasi melalui array worm musuh
+        for (int i = 0; i < this.opponent.worms.length; i++) {
+            enemyPosition.add(this.opponent.worms[i].position);
         }
 
         int minimalDistance = euclideanDistance(currentWorm.x, currentWorm.y, enemyPosition.get(0).x, enemyPosition.get(0).y);
         int minimalIndex = 0;
 
+        // Cari worm terdekat
         for (int i = 1; i < enemyPosition.size(); i++) {
             int temp = euclideanDistance(currentWorm.x, currentWorm.y, enemyPosition.get(i).x, enemyPosition.get(i).y);
 

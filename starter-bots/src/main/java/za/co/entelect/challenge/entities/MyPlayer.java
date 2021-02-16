@@ -12,6 +12,9 @@ public class MyPlayer {
     @SerializedName("health")
     public int health;
 
+    @SerializedName("remainingWormSelections")
+    public int remainingWormSelections;
+
     @SerializedName("worms")
     public MyWorm[] worms;
 }

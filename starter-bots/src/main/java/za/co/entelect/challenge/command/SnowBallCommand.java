@@ -1,11 +1,11 @@
 package za.co.entelect.challenge.command;
 
-public class SnowballCommand implements Command {
+public class SnowBallCommand implements Command {
 
     private final int x;
     private final int y;
 
-    public SnowballCommand(int x, int y) {
+    public SnowBallCommand(int x, int y) {
         this.x = x;
         this.y = y;
     }
