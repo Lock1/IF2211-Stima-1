@@ -31,6 +31,12 @@ public class Bot {
 
     public Command run() {
 
+        // DEBUG
+        // if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0)
+        //     return new BananaCommand(currentWorm.position.x+3,currentWorm.position.y);
+        // if (currentWorm.snowball != null && currentWorm.snowball.count > 0)
+        //     return new SnowBallCommand(currentWorm.position.x+1,currentWorm.position.y);
+
         Worm enemyWorm = getFirstWormInRange();
         // Arah gerak
         Direction moveDirection = nearestEnemyDirection(currentWorm.position);
@@ -219,7 +225,7 @@ public class Bot {
     // }
 
     // private boolean canShoot(List<List<Cell>> range){
-    //     for 
+    //     for
     // }
 
     private Direction resolveDirection(Position a, Position b) {
