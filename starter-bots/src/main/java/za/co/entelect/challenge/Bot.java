@@ -4,6 +4,7 @@ import za.co.entelect.challenge.command.*;
 import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.CellType;
 import za.co.entelect.challenge.enums.Direction;
+import za.co.entelect.challenge.enums.PowerUpType;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -38,11 +39,17 @@ public class Bot {
         //     return new SnowBallCommand(currentWorm.position.x+1,currentWorm.position.y);
         // if (currentWorm.roundsUntilUnfrozen == 1)
         //     System.out.printf("deboggg");
-        
+
         Worm enemyWorm = getFirstWormInRange(currentWorm);
         // Arah gerak
         Direction moveDirection = nearestEnemyDirection(currentWorm.position);
 
+        //TODO : implementasi search healthpack
+        // Cell powerPosition = powerUpPosition();
+
+        // if(currentWorm.health < 20 && powerPosition != null){
+        //     return moveOrDigToCell(powerPosition.x, powerPosition.y, currentWorm.position);
+        // }
         //Select worm secara paksa yang tidak sesuai dengan urutan id
         //apabila ada worm yang health nya kurang dari current worm
         if (gameState.myPlayer.remainingWormSelections > 0) {
@@ -98,6 +105,20 @@ public class Bot {
         }
 
         return new DoNothingCommand();
+    }
+
+    //Cari lokasi powerup
+    private Cell powerUpPosition(){
+        for (int i=0; i<gameState.mapSize; i++){
+            for (int j=0; j<gameState.mapSize; j++){
+                if (isValidCoordinate(i, j)){
+                    if(gameState.map[i][j].powerUp != null &&gameState.map[i][j].powerUp.type == PowerUpType.HEALTH_PACK){
+                        return gameState.map[i][j];
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     // Ambil worm in range terdekat selectedWorm
