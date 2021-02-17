@@ -37,34 +37,37 @@ public class Bot {
         // if (currentWorm.snowball != null && currentWorm.snowball.count > 0)
         //     return new SnowBallCommand(currentWorm.position.x+1,currentWorm.position.y);
 
-        Worm enemyWorm = getFirstWormInRange();
+        Worm enemyWorm = getFirstWormInRange(currentWorm);
         // Arah gerak
         Direction moveDirection = nearestEnemyDirection(currentWorm.position);
-        // Jika ada sebuah enemy worm, panggil shoot command
-        if (enemyWorm != null) {
-            Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            return new ShootCommand(direction);
-        }
 
-        if (throwSkill(currentWorm) != null){
-            return throwSkill(currentWorm);
-        }        
-        
         //Select worm secara paksa yang tidak sesuai dengan urutan id
+        //apabila ada worm yang health nya kurang dari current worm
         if (gameState.myPlayer.remainingWormSelections > 0) {
             for (int i = 0; i < gameState.myPlayer.worms.length; i++) {
-                Worm worm = gameState.myPlayer.worms[i];
-                
-                if (worm != currentWorm && currentWorm.health > 0) {
-                    Worm shootableWorm = getFirstWormInRange();
-                    
+                MyWorm worm = gameState.myPlayer.worms[i];
+
+                if (worm != currentWorm && worm.health < currentWorm.health) {
+                    Worm shootableWorm = getFirstWormInRange(worm);
+
                     if (shootableWorm != null) {
                         Direction direction = resolveDirection(worm.position, shootableWorm.position);
                         return new SelectCommand(worm.id, new ShootCommand(direction));
                     }
                 }
             }
-        } 
+        }
+
+        // Lempar skill
+        if (throwSkill(currentWorm) != null){
+            return throwSkill(currentWorm);
+        }
+
+        // Jika ada sebuah enemy worm, panggil shoot command
+        if (enemyWorm != null) {
+            Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
+            return new ShootCommand(direction);
+        }
 
         // Tujuan
         int xDestination = currentWorm.position.x + moveDirection.x;
@@ -75,6 +78,7 @@ public class Bot {
 
     }
 
+    // Gerak atau dig
     private Command moveOrDigToCell(int x, int y, Position currentPosition) {
         List<Cell> surroundingBlocks = getSurroundingCells(currentPosition.x, currentPosition.y);
 
@@ -90,16 +94,14 @@ public class Bot {
                 }
             }
         }
-        
-        // System.out.printf("From %d %d",currentPosition.x ,currentPosition.y);
-        // System.out.printf("To %d %d",x ,y);
 
         return new DoNothingCommand();
     }
 
-    private Worm getFirstWormInRange() {
+    // Ambil worm in range terdekat selectedWorm
+    private Worm getFirstWormInRange(MyWorm selectedWorm) {
 
-        Set<String> cells = constructFireDirectionLines(currentWorm.weapon.range)
+        Set<String> cells = constructFireDirectionLines(selectedWorm.weapon.range)
                 .stream()
                 .flatMap(Collection::stream)
                 .map(cell -> String.format("%d_%d", cell.x, cell.y))
@@ -120,15 +122,17 @@ public class Bot {
 
         // Iterasi melalui array worm musuh
         for (int i = 0; i < this.opponent.worms.length; i++) {
-            enemyPosition.add(this.opponent.worms[i].position);
+            if (this.opponent.worms[i].health > 0) {
+                enemyPosition.add(this.opponent.worms[i].position);
+            }
         }
 
-        int minimalDistance = euclideanDistance(currentWorm.x, currentWorm.y, enemyPosition.get(0).x, enemyPosition.get(0).y);
+        int minimalDistance = getEuclidean(currentWorm, enemyPosition.get(0));
         int minimalIndex = 0;
 
         // Cari worm terdekat
         for (int i = 1; i < enemyPosition.size(); i++) {
-            int temp = euclideanDistance(currentWorm.x, currentWorm.y, enemyPosition.get(i).x, enemyPosition.get(i).y);
+            int temp = getEuclidean(currentWorm, enemyPosition.get(i));
 
             if (temp < minimalDistance) {
                 minimalIndex = i;
@@ -136,9 +140,9 @@ public class Bot {
         }
 
         return resolveDirection(currentWorm, enemyPosition.get(minimalIndex));
-        // return resolveDirection(currentWorm, opponent.worms[0].position);
     }
 
+    // Fungsi lempar banana bomb atau snowball
     private Command throwSkill(MyWorm currentWorm) {
         ArrayList<Position> enemyPosition = new ArrayList<>();
 
@@ -159,13 +163,70 @@ public class Bot {
             }
         }
 
-        if (euclideanDistance(currentWorm.position.x, currentWorm.position.y, enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y) <= 5){
-            if (currentWorm.snowball != null && currentWorm.snowball.count > 0)
-                return new SnowBallCommand(enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y);
-            else if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0)
-                return new BananaCommand(enemyPosition.get(minimalIndex).x, enemyPosition.get(minimalIndex).y);
+        // Apabila health worm > 50 cek apakah musuh bergerombolan. Jika iya
+        // lempar banana bomb atau snowball. Apabila health <= 50, langsung lempar tanpa memikirkan
+        // musuh bergerombol atau tidak
+        if (getEuclidean(currentWorm.position, enemyPosition.get(minimalIndex)) <= 5){
+            if (currentWorm.snowball != null && currentWorm.snowball.count > 0) {
+                return Snowball(enemyPosition.get(minimalIndex));
+            } else if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0) {
+                return BananaBomb(enemyPosition.get(minimalIndex));
+            }
         }
         return null;
+    }
+
+    // Cek snowball
+    private Command Snowball(Position enemyPosition) {
+        if (currentWorm.health > 50 && checkSnowballIsGroup(enemyPosition)) {
+            return new SnowBallCommand(enemyPosition.x, enemyPosition.y);
+        } else if (currentWorm.health <= 50) {
+            return new SnowBallCommand(enemyPosition.x, enemyPosition.y);
+        }
+
+        return null;
+    }
+
+    // Cek banana
+    private Command BananaBomb(Position enemyPosition) {
+        if (currentWorm.health > 50 && checkBananaIsGroup(enemyPosition)) {
+            return new BananaCommand(enemyPosition.x, enemyPosition.y);
+        } else if (currentWorm.health <= 50) {
+            return new BananaCommand(enemyPosition.x, enemyPosition.y);
+        }
+
+        return null;
+    }
+
+    // Greedy Banana
+    private boolean checkBananaIsGroup (Position enemyWorm) {
+        for (int i = 0; i < this.opponent.worms.length; i++) {
+            if (this.opponent.worms[i].position != enemyWorm) {
+                if (getEuclidean(enemyWorm, this.opponent.worms[i].position) <= 2) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Greedy Snowball
+    private boolean checkSnowballIsGroup (Position enemyWorm) {
+        List<Cell> surroundingBlocks = getSurroundingCells(enemyWorm.x, enemyWorm.y);
+
+        for (int i = 0; i < surroundingBlocks.size(); i++) {
+            for (int j = 0; j < this.opponent.worms.length; j++) {
+                if (this.opponent.worms[j].position != enemyWorm) {
+                    if (surroundingBlocks.get(i).x == this.opponent.worms[j].position.x &&
+                            surroundingBlocks.get(i).y == this.opponent.worms[j].position.y) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private List<List<Cell>> constructFireDirectionLines(int range) {
@@ -212,6 +273,10 @@ public class Bot {
         return cells;
     }
 
+    private int getEuclidean (Position a, Position b) {
+        return euclideanDistance(a.x, a.y, b.x, b.y);
+    }
+
     private int euclideanDistance(int aX, int aY, int bX, int bY) {
         return (int) (Math.sqrt(Math.pow(aX - bX, 2) + Math.pow(aY - bY, 2)));
     }
@@ -220,18 +285,6 @@ public class Bot {
         return x >= 0 && x < gameState.mapSize
                 && y >= 0 && y < gameState.mapSize;
     }
-
-    // private boolean canDoBanana(Worm currentWorm){
-    //     return currentWorm.id == 2 && (euclideanDistance(currentWorm.position.x, currentWorm.position.y, enemy.position.x, enemy.position.y) <= 5);
-    // }
-
-    // private boolean canDoSnowball(Worm currentWorm){
-    //     return currentWorm.id == 3;
-    // }
-
-    // private boolean canShoot(List<List<Cell>> range){
-    //     for
-    // }
 
     private Direction resolveDirection(Position a, Position b) {
         StringBuilder builder = new StringBuilder();
