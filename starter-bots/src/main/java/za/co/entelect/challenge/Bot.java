@@ -36,7 +36,9 @@ public class Bot {
         //     return new BananaCommand(currentWorm.position.x+3,currentWorm.position.y);
         // if (currentWorm.snowball != null && currentWorm.snowball.count > 0)
         //     return new SnowBallCommand(currentWorm.position.x+1,currentWorm.position.y);
-
+        // if (currentWorm.roundsUntilUnfrozen == 1)
+        //     System.out.printf("deboggg");
+        
         Worm enemyWorm = getFirstWormInRange(currentWorm);
         // Arah gerak
         Direction moveDirection = nearestEnemyDirection(currentWorm.position);
@@ -145,10 +147,12 @@ public class Bot {
     // Fungsi lempar banana bomb atau snowball
     private Command throwSkill(MyWorm currentWorm) {
         ArrayList<Position> enemyPosition = new ArrayList<>();
+        ArrayList<Integer> frozeRound = new ArrayList<>();
 
         // Iterasi melalui array worm musuh
         for (int i = 0; i < this.opponent.worms.length; i++) {
             enemyPosition.add(this.opponent.worms[i].position);
+            frozeRound.add(this.opponent.worms[i].roundsUntilUnfrozen);
         }
 
         int minimalDistance = euclideanDistance(currentWorm.position.x, currentWorm.position.y, enemyPosition.get(0).x, enemyPosition.get(0).y);
@@ -167,7 +171,7 @@ public class Bot {
         // lempar banana bomb atau snowball. Apabila health <= 50, langsung lempar tanpa memikirkan
         // musuh bergerombol atau tidak
         if (getEuclidean(currentWorm.position, enemyPosition.get(minimalIndex)) <= 5){
-            if (currentWorm.snowball != null && currentWorm.snowball.count > 0) {
+            if (currentWorm.snowball != null && currentWorm.snowball.count > 0 && frozeRound.get(minimalIndex) == 0) {
                 return Snowball(enemyPosition.get(minimalIndex));
             } else if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0) {
                 return BananaBomb(enemyPosition.get(minimalIndex));
