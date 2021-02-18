@@ -52,20 +52,20 @@ public class Bot {
         // }
         //Select worm secara paksa yang tidak sesuai dengan urutan id
         //apabila ada worm yang health nya kurang dari current worm
-        if (gameState.myPlayer.remainingWormSelections > 0) {
-            for (int i = 0; i < gameState.myPlayer.worms.length; i++) {
-                MyWorm worm = gameState.myPlayer.worms[i];
+        // if (gameState.myPlayer.remainingWormSelections > 0) {
+        //     for (int i = 0; i < gameState.myPlayer.worms.length; i++) {
+        //         MyWorm worm = gameState.myPlayer.worms[i];
 
-                if (worm != currentWorm && worm.health < currentWorm.health) {
-                    Worm shootableWorm = getFirstWormInRange(worm);
+        //         if (worm != currentWorm && worm.health < currentWorm.health) {
+        //             Worm shootableWorm = getFirstWormInRange(worm);
 
-                    if (shootableWorm != null) {
-                        Direction direction = resolveDirection(worm.position, shootableWorm.position);
-                        return new SelectCommand(worm.id, new ShootCommand(direction));
-                    }
-                }
-            }
-        }
+        //             if (shootableWorm != null) {
+        //                 Direction direction = resolveDirection(worm.position, shootableWorm.position);
+        //                 return new SelectCommand(worm.id, new ShootCommand(direction));
+        //             }
+        //         }
+        //     }
+        // }
 
         // Lempar skill
         if (throwSkill(currentWorm) != null){
@@ -167,21 +167,12 @@ public class Bot {
 
     // Fungsi lempar banana bomb atau snowball
     private Command throwSkill(MyWorm currentWorm) {
-        ArrayList<Position> enemyPosition = new ArrayList<>();
-        ArrayList<Integer> frozeRound = new ArrayList<>();
-
-        // Iterasi melalui array worm musuh
-        for (int i = 0; i < this.opponent.worms.length; i++) {
-            enemyPosition.add(this.opponent.worms[i].position);
-            frozeRound.add(this.opponent.worms[i].roundsUntilUnfrozen);
-        }
-
-        int minimalDistance = euclideanDistance(currentWorm.position.x, currentWorm.position.y, enemyPosition.get(0).x, enemyPosition.get(0).y);
+        int minimalDistance = euclideanDistance(currentWorm.position.x, currentWorm.position.y, this.opponent.worms[0].position.x, this.opponent.worms[0].position.y);
         int minimalIndex = 0;
 
         // Cari worm terdekat
-        for (int i = 1; i < enemyPosition.size(); i++) {
-            int temp = euclideanDistance(currentWorm.position.x, currentWorm.position.y, enemyPosition.get(i).x, enemyPosition.get(i).y);
+        for (int i = 1; i < this.opponent.worms.length; i++) {
+            int temp = euclideanDistance(currentWorm.position.x, currentWorm.position.y, this.opponent.worms[i].position.x, this.opponent.worms[i].position.y);
 
             if (temp < minimalDistance) {
                 minimalIndex = i;
@@ -191,11 +182,11 @@ public class Bot {
         // Apabila health worm > 50 cek apakah musuh bergerombolan. Jika iya
         // lempar banana bomb atau snowball. Apabila health <= 50, langsung lempar tanpa memikirkan
         // musuh bergerombol atau tidak
-        if (getEuclidean(currentWorm.position, enemyPosition.get(minimalIndex)) <= 5){
-            if (currentWorm.snowball != null && currentWorm.snowball.count > 0 && frozeRound.get(minimalIndex) == 0) {
-                return Snowball(enemyPosition.get(minimalIndex));
-            } else if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0) {
-                return BananaBomb(enemyPosition.get(minimalIndex));
+        if (getEuclidean(currentWorm.position, this.opponent.worms[minimalIndex].position) <= 5){
+            if (currentWorm.snowball != null && currentWorm.snowball.count > 0 && this.opponent.worms[minimalIndex].roundsUntilUnfrozen == 0 && this.opponent.worms[minimalIndex].health>0) {
+                return Snowball(this.opponent.worms[minimalIndex].position);
+            } else if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0 && this.opponent.worms[minimalIndex].health>0) {
+                return BananaBomb(this.opponent.worms[minimalIndex].position);
             }
         }
         return null;
