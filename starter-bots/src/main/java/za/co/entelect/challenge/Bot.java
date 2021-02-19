@@ -41,23 +41,36 @@ public class Bot {
         // }
         //Select worm secara paksa yang tidak sesuai dengan urutan id
         //apabila ada worm yang health nya kurang dari current worm
-        // if (gameState.myPlayer.remainingWormSelections > 0) {
-        //     for (int i = 0; i < gameState.myPlayer.worms.length; i++) {
-        //         MyWorm worm = gameState.myPlayer.worms[i];
-        //
-        //         if (worm != currentWorm && worm.health < currentWorm.health) {
-        //             Worm shootableWorm = getFirstWormInRange(worm);
-        //
-        //             if (shootableWorm != null) {
-        //                 Direction direction = resolveDirection(worm.position, shootableWorm.position);
-        //                 return new SelectCommand(worm.id, new ShootCommand(direction));
-        //             }
-        //         }
-        //     }
-        // }
+        if (gameState.myPlayer.remainingWormSelections > 0) {
+            for (int i = 0; i < gameState.myPlayer.worms.length; i++) {
+                MyWorm worm = gameState.myPlayer.worms[i];
+
+                if (worm != currentWorm && worm.health > 0 && worm.health <= 15) {
+                    Cell powerPosition = powerUpPosition();
+                    Position targetPos = new Position();
+                    if (powerPosition != null) {
+                        targetPos.x = powerPosition.x;
+                        targetPos.y = powerPosition.y;
+                        if (euclideanDistance(targetPos, worm.position) < 3)
+                            return new SelectCommand(worm.id, forceMoveToCell(worm, powerPosition));
+                    }
+                }
+
+                else if (worm.health > 0 && worm.health <= 50 && throwSkill(worm) != null) {
+                    return new SelectCommand(worm.id, throwSkill(worm));
+
+                }
+            }
+        }
+
+        if (currentWorm.health > 0 && currentWorm.health <= 15) {
+            Cell powerPosition = powerUpPosition();
+            if (powerPosition != null)
+                 return new SelectCommand(currentWorm.id, forceMoveToCell(currentWorm, powerPosition));
+        }
 
         // Lempar skill
-        if (throwSkill(currentWorm) != null){
+        if (throwSkill(currentWorm) != null) {
             return throwSkill(currentWorm);
         }
 
@@ -70,6 +83,33 @@ public class Bot {
 
         // Jika semua kondisi untuk perintah non-move / dig atas tidak dipenuhi
         return forceMoveToNearestEnemy(currentWorm.position);
+    }
+
+    private Command forceMoveToCell(Worm selectedWorm, Cell targetCell) {
+        Position targetPosition = new Position();
+        targetPosition.x = targetCell.x;
+        targetPosition.y = targetCell.y;
+        Direction moveDirection = resolveDirection(selectedWorm.position, targetPosition);
+
+        // Tujuan
+        int x = selectedWorm.position.x + moveDirection.x;
+        int y = selectedWorm.position.y + moveDirection.y;
+
+        List<Cell> surroundingBlocks = getSurroundingCells(selectedWorm.position.x, selectedWorm.position.y);
+
+        for (int i = 0; i < surroundingBlocks.size(); i++) {
+            Cell block = surroundingBlocks.get(i);
+
+            if (block.x == x && block.y == y && !isOccupied(block)) {
+                if (block.type == CellType.DIRT) {
+                    return new DigCommand(x, y);
+                } else {
+                    return new MoveCommand(x, y);
+                }
+            }
+        }
+
+        return null;
     }
 
     // Gerak atau dig
@@ -175,15 +215,15 @@ public class Bot {
     }
 
     // Fungsi lempar banana bomb atau snowball
-    private Command throwSkill(MyWorm currentWorm) {
-        int minimalDistance = euclideanDistance(currentWorm.position.x, currentWorm.position.y, this.opponent.worms[0].position.x, this.opponent.worms[0].position.y);
-        int minimalIndex = 0;
+    private Command throwSkill(MyWorm selectedWorm) {
+        int minimalDistance = 10000;
+        int minimalIndex = -1;
 
         // Cari worm terdekat
-        for (int i = 1; i < this.opponent.worms.length; i++) {
-            int temp = euclideanDistance(currentWorm.position.x, currentWorm.position.y, this.opponent.worms[i].position.x, this.opponent.worms[i].position.y);
+        for (int i = 0; i < this.opponent.worms.length; i++) {
+            int temp = euclideanDistance(selectedWorm.position.x, selectedWorm.position.y, this.opponent.worms[i].position.x, this.opponent.worms[i].position.y);
 
-            if (temp < minimalDistance) {
+            if (temp < minimalDistance && this.opponent.worms[i].health > 0) {
                 minimalIndex = i;
             }
         }
@@ -191,10 +231,10 @@ public class Bot {
         // Apabila health worm > 50 cek apakah musuh bergerombolan. Jika iya
         // lempar banana bomb atau snowball. Apabila health <= 50, langsung lempar tanpa memikirkan
         // musuh bergerombol atau tidak
-        if (euclideanDistance(currentWorm.position, this.opponent.worms[minimalIndex].position) <= 5){
-            if (currentWorm.snowball != null && currentWorm.snowball.count > 0 && this.opponent.worms[minimalIndex].roundsUntilUnfrozen == 0 && this.opponent.worms[minimalIndex].health>0) {
-                return Snowball(this.opponent.worms[minimalIndex].position);
-            } else if (currentWorm.bananaBomb != null && currentWorm.bananaBomb.count > 0 && this.opponent.worms[minimalIndex].health>0) {
+        if (euclideanDistance(selectedWorm.position, this.opponent.worms[minimalIndex].position) <= 5) {
+            if (selectedWorm.snowball != null && selectedWorm.snowball.count > 0 && this.opponent.worms[minimalIndex].roundsUntilUnfrozen == 0) {
+                return Snowball(selectedWorm, this.opponent.worms[minimalIndex].position); // FIME : Never thrown
+            } else if (selectedWorm.bananaBomb != null && selectedWorm.bananaBomb.count > 0) {
                 return BananaBomb(this.opponent.worms[minimalIndex].position);
             }
         }
@@ -202,10 +242,17 @@ public class Bot {
     }
 
     // Cek snowball
-    private Command Snowball(Position enemyPosition) {
-        if (currentWorm.health > 50 && checkSnowballIsGroup(enemyPosition)) {
-            return new SnowBallCommand(enemyPosition.x, enemyPosition.y);
-        } else if (currentWorm.health <= 50) {
+    private Command Snowball(MyWorm selectedWorm, Position enemyPosition) {
+        List<Cell> surroundingBlocks = getSurroundingCells(enemyPosition.x, enemyPosition.y);
+        for (int i = 0; i < surroundingBlocks.size(); i++) {
+            Position targetPos = new Position();
+            targetPos.x = surroundingBlocks.get(i).x;
+            targetPos.y = surroundingBlocks.get(i).y;
+            if (checkSnowballIsGroup(targetPos) && euclideanDistance(selectedWorm.position, targetPos) <= 5)
+                return new SnowBallCommand(targetPos.x, targetPos.y);
+        }
+
+        if (currentWorm.health <= 50) {
             return new SnowBallCommand(enemyPosition.x, enemyPosition.y);
         }
 
@@ -239,19 +286,22 @@ public class Bot {
     // Greedy Snowball
     private boolean checkSnowballIsGroup (Position enemyWorm) {
         List<Cell> surroundingBlocks = getSurroundingCells(enemyWorm.x, enemyWorm.y);
+        int enemyCount = 0;
 
         for (int i = 0; i < surroundingBlocks.size(); i++) {
             for (int j = 0; j < this.opponent.worms.length; j++) {
-                if (this.opponent.worms[j].position != enemyWorm) {
+                // if (this.opponent.worms[j].position != enemyWorm) {
                     if (surroundingBlocks.get(i).x == this.opponent.worms[j].position.x &&
                             surroundingBlocks.get(i).y == this.opponent.worms[j].position.y) {
-                        return true;
+                        enemyCount++;
                     }
-                }
+                // }
             }
         }
-
-        return false;
+        if (enemyCount > 1)
+            return true;
+        else
+            return false;
     }
 
     private List<List<Cell>> constructFireDirectionLines(int range) {
