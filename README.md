@@ -1,6 +1,31 @@
 # Tugas Besar 1 - Strategi Algoritma - IF2211
 **TBA**
-<!-- FAQ Link https://docs.google.com/spreadsheets/d/1QkNJaG0cs0F3fyr8cIbdDV4myj_dXvvyGqcqPybjT2A/edit#gid=0 -->
+
+
+
+## Tentang Program
+- Program untuk menjalankan game utama membutuhkan dependencies yang dilist pada tabel dibawah.
+- Program dapat dijalankan secara langsung dengan menjalankan *run.bat* pada OS Windows.
+- Tugas besar ini juga tersedia pada [repository github](https://github.com/Lock1/Stima1-IF2211).
+- Direkomendasikan untuk menggunakan visualizer ketika ingin melihat match yang telah dijalankan pada program utama.
+
+
+
+**Dependencies**
+Komponen  | Menggunakan
+--------  | -----------
+JDK / JRE | 8
+NodeJS    | 15.0.1
+
+
+**Anggota Kelompok**
+NIM      | Nama
+---      | --------------------------
+13519140 | Fabian Savero Diaz Pranoto
+13519146 | Fadel Ananda Dotty
+13519214 | Tanur Rizaldi Rahardjo
+
+
 
 
 <!--
