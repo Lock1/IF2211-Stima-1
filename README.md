@@ -4,8 +4,8 @@
 
 
 ## Tentang Program
-- Program untuk menjalankan game utama membutuhkan dependencies yang dilist pada tabel dibawah.
-- Program dapat dijalankan secara langsung dengan menjalankan *run.bat* pada OS Windows.
+- Engine game membutuhkan dependencies yang dilist pada tabel dibawah.
+- Game dapat dijalankan secara langsung dengan menjalankan *run.bat* pada OS Windows.
 - Tugas besar ini juga tersedia pada [repository github](https://github.com/Lock1/Stima1-IF2211).
 - Direkomendasikan untuk menggunakan visualizer ketika ingin melihat match yang telah dijalankan pada program utama.
 
